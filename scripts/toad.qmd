@@ -31,3 +31,17 @@ library(adehabitatHR)
 toad <- read_csv(here("data", "arroyotoad_presence.csv"))
 ```
 :::
+
+# Clean Data
+```{r}
+# select columns
+
+# use lubridate() on observed_on
+# latitude
+# longitude
+# place_county_name
+# place_state_name
+# place_country_name
+# scientific_name
+```
+
