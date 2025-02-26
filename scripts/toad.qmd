@@ -1,0 +1,31 @@
+---
+title: "Toad"
+format: html
+format: 
+  html:
+    code-fold: true 
+    toc: true
+    number-sections: false
+    embed-resources: true
+editor: visual
+execute:
+  echo: true
+  message: false
+  warning: false
+---
+
+::: panel-tabset
+# Load Libraries
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+
+```
+
+# Load Data
+```{r}
+toad <- read_csv(here("data", "arroyotoad_presence.csv"))
+```
+
+::: 
