@@ -16,16 +16,18 @@ execute:
 
 ::: panel-tabset
 # Load Libraries
+
 ```{r}
 library(tidyverse)
 library(here)
 library(janitor)
+library(adehabitatHR)
 
 ```
 
 # Load Data
+
 ```{r}
 toad <- read_csv(here("data", "arroyotoad_presence.csv"))
 ```
-
-::: 
+:::
