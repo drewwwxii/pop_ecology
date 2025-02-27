@@ -22,26 +22,30 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(adehabitatHR)
+library(lubridate)
+library(dplyr)
+library(tibble)
 
-```
+toad <- read_csv(here("data", "arroyotoad_presence.csv")) %>%
+  clean_names()
 
-# Load Data
+# Rename column
+toad <- toad %>%
+  rename(date = observed_on)
 
-```{r}
-toad <- read_csv(here("data", "arroyotoad_presence.csv"))
-```
-:::
+# Convert date column to Date format (if not already)
+toad$date <- as.Date(toad$date)
 
-# Clean Data
-```{r}
-# select columns
+# Extract year from date
+toad <- toad %>%
+  mutate(year = year(date))
 
-# use lubridate() on observed_on
-# latitude
-# longitude
-# place_county_name
-# place_state_name
-# place_country_name
-# scientific_name
+# select columns from dataset
+toad_selected <- toad %>%
+  dplyr::select(year, latitude, longitude, place_county_name, place_state_name, place_country_name, scientific_name)
+
+# View the first few rows of the new dataset
+head(toad_selected)
+
 ```
 
