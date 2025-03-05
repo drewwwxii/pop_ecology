@@ -47,7 +47,11 @@ toad_selected <- toad %>%
 # View the first few rows of the new dataset
 head(toad_selected)
 
-#hi 
+#export toad_selected as csv
+#write_csv(toad_selected, here("data", "toad_selected.csv"))
+
+
+#hi  
 
 ```
 
