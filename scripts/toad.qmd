@@ -1,6 +1,6 @@
 ---
 title: "Toad"
-format: html
+author: "Andrew Palacios, Priscilla Ta, Anissa Stull"
 format: 
   html:
     code-fold: true 
@@ -13,9 +13,8 @@ execute:
   message: false
   warning: false
 ---
-
 ::: panel-tabset
-# Load Libraries
+# Load Libraries and Clean Data
 
 ```{r}
 library(tidyverse)
@@ -25,6 +24,9 @@ library(adehabitatHR)
 library(lubridate)
 library(dplyr)
 library(tibble)
+library(sp)
+library(sf)
+library(patchwork)
 
 toad <- read_csv(here("data", "arroyotoad_presence.csv")) %>%
   clean_names()
@@ -54,4 +56,110 @@ head(toad_selected)
 #hi  
 
 ```
+
+
+# Toad Home Range Analysis
+```{r}
+# Load the data
+
+cleveland_toad <- read_csv(here("data", "cleveland_toad.csv")) %>%
+  clean_names()
+
+# Convert dataset to SpatialPointsDataFrame
+coordinates(cleveland_toad) <- ~longitude + latitude
+proj4string(cleveland_toad) <- CRS("+proj=longlat +datum=WGS84")
+
+# Kernel Density Estimation (KDE) Home Range
+kde <- kernelUD(cleveland_toad, h="href")  
+hr95 <- getverticeshr(kde, 95)  # 95% home range
+hr50 <- getverticeshr(kde, 50)  # 50% core area
+
+# Minimum Convex Polygon (MCP) Home Range
+mcp95 <- mcp(cleveland_toad, percent = 95)
+
+# Plot results
+par(mfrow=c(1,2))
+plot(hr95, col="lightblue", main="KDE Home Range (95%) & Core Area (50%)")
+plot(hr50, col="red", add=TRUE)
+points(cleveland_toad, pch=20, col="black")
+
+plot(mcp95, col="lightgreen", main="Minimum Convex Polygon (95%)")
+points(cleveland_toad, pch=20, col="black")
+
+# Save as shapefiles
+#st_write(st_as_sf(hr95), "homerange_95.shp")
+#st_write(st_as_sf(hr50), "homerange_50.shp")
+#st_write(st_as_sf(mcp95), "homerange_mcp95.shp")
+
+```
+
+# Mapping
+```{r}
+# Load shapefiles using here()
+clevelandNF <- st_read(here("data", "shapefiles", "clevelandNF.shp"))  # Cleveland National Forest
+burn_scars <- st_read(here("data", "shapefiles", "fires_cleveland_04to23.shp"))  # Fire burn scars
+
+
+# Convert to sf if needed
+cleveland_toad_sf <- st_as_sf(cleveland_toad)
+hr95 <- st_as_sf(hr95)
+hr50 <- st_as_sf(hr50)
+mcp95 <- st_as_sf(mcp95)
+clevelandNF <- st_as_sf(clevelandNF)
+burn_scars <- st_as_sf(burn_scars)
+
+# Plot everything
+ggplot() +
+  geom_sf(data = clevelandNF, fill = "lightgreen", color = "darkgreen", alpha = 0.5) +
+  geom_sf(data = burn_scars, fill = "red", color = "black", alpha = 0.5) +
+  geom_sf(data = hr95, aes(geometry = geometry), fill = "blue", color = "blue", alpha = 0.3) +  # KDE 95% Home Range
+  geom_sf(data = hr50, aes(geometry = geometry), fill = "purple", color = "purple", alpha = 0.5) +  # KDE 50% Core Area
+  geom_sf(data = mcp95, aes(geometry = geometry), fill = "yellow", color = "orange", alpha = 0.3) +  # MCP Home Range
+  geom_sf(data = cleveland_toad_sf, aes(geometry = geometry), color = "black", size = 1, alpha = 0.7) +  # Observation points
+  labs(title = "Cleveland National Forest - Toad Home Range & Fire Scars",
+       subtitle = "Blue = 95% KDE | Purple = 50% KDE | Yellow = MCP | Red = Fire Scars",
+       x = "Longitude", y = "Latitude") +
+  theme_minimal()
+```
+
+# Easier to understand mapping 
+```{r}
+# 1️⃣ KDE Home Range over Cleveland National Forest
+p1 <- ggplot() +
+  geom_sf(data = clevelandNF, fill = "lightgreen", color = "darkgreen", alpha = 0.5) +
+  geom_sf(data = hr95, aes(geometry = geometry, fill = "95% KDE"), color = NA, alpha = 0.3) +
+  geom_sf(data = hr50, aes(geometry = geometry, fill = "50% KDE"), color = NA, alpha = 0.5) +
+  geom_sf(data = cleveland_toad_sf, aes(geometry = geometry, color = "Toad Observations"), size = 1, alpha = 0.7) +
+  scale_fill_manual(name = "Home Range", values = c("95% KDE" = "blue", "50% KDE" = "purple")) +
+  scale_color_manual(name = "Observations", values = c("Toad Observations" = "black")) +
+  labs(
+    title = "Toad Home Range in Cleveland National Forest",
+    x = "Longitude", 
+    y = "Latitude",
+    caption = "Figure 1: Estimated home range of Cleveland National Forest toads using KDE. 
+               95% KDE (blue) represents the broader home range, while 50% KDE (purple) 
+               indicates the core area. Black points represent individual observations."
+  ) +
+  theme_minimal()
+
+# 2️⃣ Burn Scars over Cleveland National Forest
+p2 <- ggplot() +
+  geom_sf(data = clevelandNF, fill = "lightgreen", color = "darkgreen", alpha = 0.5) +
+  geom_sf(data = burn_scars, aes(geometry = geometry, fill = "Burn Scars"), color = "black", alpha = 0.5) +
+  scale_fill_manual(name = "Fire History", values = c("Burn Scars" = "red")) +
+  labs(
+    title = "Burn Scars in Cleveland National Forest",
+    x = "Longitude", 
+    y = "Latitude",
+    caption = "Figure 2: Historical burn scars (red) in Cleveland National Forest. 
+               Burned areas may influence toad habitat and movement patterns."
+  ) +
+  theme_minimal()
+
+# Arrange the two plots side by side
+p1 | p2
+```
+
+
+
 :::
