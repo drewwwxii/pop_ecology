@@ -100,7 +100,7 @@ clevelandNF <- st_read(here("data", "shapefiles", "clevelandNF.shp"))  # Clevela
 burn_scars <- st_read(here("data", "shapefiles", "fires_cleveland_04to23.shp"))  # Fire burn scars
 
 
-# Convert to sf if needed
+# Convert to sf 
 cleveland_toad_sf <- st_as_sf(cleveland_toad)
 hr95 <- st_as_sf(hr95)
 hr50 <- st_as_sf(hr50)
@@ -124,7 +124,7 @@ ggplot() +
 
 # Easier to understand mapping 
 ```{r}
-# 1️⃣ KDE Home Range over Cleveland National Forest
+# 1 KDE Home Range over Cleveland National Forest
 p1 <- ggplot() +
   geom_sf(data = clevelandNF, fill = "lightgreen", color = "darkgreen", alpha = 0.5) +
   geom_sf(data = hr95, aes(geometry = geometry, fill = "95% KDE"), color = NA, alpha = 0.3) +
@@ -142,7 +142,7 @@ p1 <- ggplot() +
   ) +
   theme_minimal()
 
-# 2️⃣ Burn Scars over Cleveland National Forest
+# 2 Burn Scars over Cleveland National Forest
 p2 <- ggplot() +
   geom_sf(data = clevelandNF, fill = "lightgreen", color = "darkgreen", alpha = 0.5) +
   geom_sf(data = burn_scars, aes(geometry = geometry, fill = "Burn Scars"), color = "black", alpha = 0.5) +
