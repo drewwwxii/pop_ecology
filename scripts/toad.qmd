@@ -53,6 +53,16 @@ head(toad_selected)
 #write_csv(toad_selected, here("data", "toad_selected.csv"))
 
 ```
+# Spatial Data Processing in ArcGIS Pro
+Isolating Cleveland National Forest Boundary
+- Extracted Cleveland National Forest Boundary from USFS Administrative Forests Boundaries shapefile to create "clevelandNF.shp"
+
+Isolating Relevant Fire Perimeters
+- Clipped the CALFIRE Historic Fire Perimeters (1991-2023) shapefile to the Cleveland National Forest boundary
+- Since we are only interested in the fires that occurred during the years we have toad presence data, we filtered the clipped fire perimeters to only include fires from 2004 to 2023 - creating a new layer called "fires_cleveland_04to23.shp"
+
+Isolating Arroyo Toad Presences within Cleveland National Forest
+- Intersect toad_selected.csv with "clevelandNF.shp" to create a new shapefile that only contains toad occurences within Cleveland National Forest ("cleveland_toad.csv")
 
 
 # Toad Home Range Analysis
