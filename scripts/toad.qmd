@@ -52,9 +52,6 @@ head(toad_selected)
 #export toad_selected as csv
 #write_csv(toad_selected, here("data", "toad_selected.csv"))
 
-
-#hi  
-
 ```
 
 
@@ -99,7 +96,6 @@ points(cleveland_toad, pch=20, col="black")
 clevelandNF <- st_read(here("data", "shapefiles", "clevelandNF.shp"))  # Cleveland National Forest
 burn_scars <- st_read(here("data", "shapefiles", "fires_cleveland_04to23.shp"))  # Fire burn scars
 
-
 # Convert to sf 
 cleveland_toad_sf <- st_as_sf(cleveland_toad)
 hr95 <- st_as_sf(hr95)
@@ -108,22 +104,6 @@ mcp95 <- st_as_sf(mcp95)
 clevelandNF <- st_as_sf(clevelandNF)
 burn_scars <- st_as_sf(burn_scars)
 
-# Plot everything
-ggplot() +
-  geom_sf(data = clevelandNF, fill = "lightgreen", color = "darkgreen", alpha = 0.5) +
-  geom_sf(data = burn_scars, fill = "red", color = "black", alpha = 0.5) +
-  geom_sf(data = hr95, aes(geometry = geometry), fill = "blue", color = "blue", alpha = 0.3) +  # KDE 95% Home Range
-  geom_sf(data = hr50, aes(geometry = geometry), fill = "purple", color = "purple", alpha = 0.5) +  # KDE 50% Core Area
-  geom_sf(data = mcp95, aes(geometry = geometry), fill = "yellow", color = "orange", alpha = 0.3) +  # MCP Home Range
-  geom_sf(data = cleveland_toad_sf, aes(geometry = geometry), color = "black", size = 1, alpha = 0.7) +  # Observation points
-  labs(title = "Cleveland National Forest - Toad Home Range & Fire Scars",
-       subtitle = "Blue = 95% KDE | Purple = 50% KDE | Yellow = MCP | Red = Fire Scars",
-       x = "Longitude", y = "Latitude") +
-  theme_minimal()
-```
-
-# Easier to understand mapping 
-```{r}
 # 1 KDE Home Range over Cleveland National Forest
 p1 <- ggplot() +
   geom_sf(data = clevelandNF, fill = "lightgreen", color = "darkgreen", alpha = 0.5) +
@@ -158,6 +138,31 @@ p2 <- ggplot() +
 
 # Arrange the two plots side by side
 p1 | p2
+```
+
+# Quantify 
+```{r}
+
+# Ensure the toad occurrences are in the same CRS as burn scars
+cleveland_toad_sf <- st_transform(cleveland_toad_sf, st_crs(burn_scars))
+
+# Perform spatial intersection to find toad occurrences within burn scars
+toad_in_burn <- st_intersects(cleveland_toad_sf, burn_scars, sparse = FALSE)
+
+# Count occurrences inside burn scars
+num_toads_in_burn <- sum(rowSums(toad_in_burn) > 0)
+
+# Total number of toad occurrences
+total_toads <- nrow(cleveland_toad_sf)
+
+# Calculate percentage of toad occurrences in burn scars
+percent_in_burn <- (num_toads_in_burn / total_toads) * 100
+
+# Print the result
+print(paste("Percentage of toad occurrences in burn scars:", round(percent_in_burn, 2), "%"))
+
+
+
 ```
 
 
